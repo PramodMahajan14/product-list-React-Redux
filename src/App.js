@@ -1,76 +1,66 @@
 import React, { useEffect, useState } from 'react';
-import AddIcon from '@material-ui/icons/Add';
-import ClearAllIcon from '@material-ui/icons/ClearAll';
-import Added from "./Added";
-import { ToastContainer, toast } from 'react-toastify';
- import 'react-toastify/dist/ReactToastify.css';
-import './App.css';
+import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
+import GitHubIcon from '@material-ui/icons/GitHub';
+import LinkedInIcon from '@material-ui/icons/LinkedIn'
+
+import './css/style.css';
+import axios from 'axios';
+import RecipeReviewCard from './Card';
+import Services from './Services';
+import { Paper } from '@material-ui/core';
+const url ="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTOzHSLh3BmjjU8TMqsTrlSOiESmMCi7p283w&usqp=CAU";
+
 //get data from localStorage
-const getLocalData=()=>{
-  let listOfitems =localStorage.getItem('listOfitem') ;
-      if(listOfitems){
-        return JSON.parse(localStorage.getItem('listOfitem'));
-      }else{
-        return [];
-      }
-}
+
 const App=()=>{
-         const[item,setitem] =useState('');
-         const[newitem,setnewitem] = useState(getLocalData());
-           const inputevent = (e)=>{
-                            setitem(e.target.value);
-                             }
+   const[search,setsearch]=useState();
+   const[item,setitem]=useState();
+   const[arr,setarr]=useState([]);
+   const searchtime =()=>{
+     setitem(search);
+     console.log(arr);
+   }
+   
+   useEffect(()=>{
+     const getdata=async()=>{
+       const resp = await axios.get(`https://api.edamam.com/search?q=${item}&app_id=6285f990&app_key=9c46c80cc55cef69db9476a4619e7464`);
+       const response = await resp;
+       setarr(response.data.hits);
+     }
 
-            const additem=(val)=>{
-                         if(item==='')
-                           { toast.error('please enter item',{
-                                                position:'top-center',
-    
-                                         })
-                          }else{
-                                 setnewitem((prevalue)=>{
-                                  return[...prevalue,item]
-                                         });
-                                   setitem('');
-                                }
-
-              }
-            const deleteitem=(id)=>{
-                         setnewitem((prevalue)=>{
-                         return prevalue.filter((item,index)=>{
-                         return index !== id;
-                        })
-                     })
-               }
-     useEffect(()=>{
-           localStorage.setItem('listOfitem',JSON.stringify(newitem));
-      },[newitem])
-             const deleteall=()=>{
-                      setnewitem([]);
-              }
-  return(<>
-          <div className="main-div">
-            <div className="center-div">
-              <h1>TodoList</h1>
-              <input type="text" value={item} onChange={inputevent} placeholder="Enter item...."  />
-             <button className="btn" onClick={additem}><AddIcon  /></button>
-            <div> <ClearAllIcon onClick={deleteall} className="clearall"/></div>
-             <ul>
-               {
-                 newitem.map((val,index)=>{
-                   return <Added  key={index}
-                   id={index}
-                   getitem={val}
-                   select={deleteitem} />
-                   
-                 })
-               }
-             </ul>
-            </div>
-          </div>
-          <ToastContainer
-            hideProgressBar={false}
-          />
-  </>)
+     getdata();
+   })
+    return(<>
+    <header>
+   <h4 className="logo">mycook.com</h4>
+    <div  className="searchbar">
+      <input type="text" name="search"
+      onChange={(e)=>setsearch(e.target.value)} value={search}
+       placeholder="Enter your dish" /><button onClick={searchtime}>search</button></div>
+     
+    </header>
+    <div className="card">
+   {
+     arr.map((val)=>{
+       return<>
+         <RecipeReviewCard
+         firstletter={val.recipe.label.charAt(0)}
+           titles={val.recipe.label}
+           types={val.recipe.cuisineType}
+           imgsrc={val.recipe.image}
+           paragraphs={val.recipe.ingredientLines}
+         />
+       </>
+     })
+   }
+</div>
+<Services />
+<di className="footer">
+<div className="icons">
+<a href="https://www.linkedin.com/in/pramod-mahajan-a717771b1"> <LinkedInIcon className="linked"/></a><a href=""><GitHubIcon/></a>
+</div>
+</di>
+      </>)
 }
 export default App;
+
